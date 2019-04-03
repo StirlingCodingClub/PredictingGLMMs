@@ -1,0 +1,26 @@
+---
+title: "Stirling Coding Club"
+subtitle: "Predicting from LMs, GLMs and GLMMs"
+author: "Jeroen Minderman (jeroen.minderman2@stir.ac.uk)"
+date: "<br><br><br><br><br><br><br>3 April 2019 (<i>updated: `r format(Sys.Date(),'%d/%m/%y')`</i>)"
+output:
+  xaringan::moon_reader:
+    css: ["default", "metropolis_jm.css", "metropolis_jm-fonts.css"]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      titleSlideClass: [top, left]
+---
+``` {r echo=FALSE}
+library(knitr)
+```
+
+# Slide 1
+
+---
+
+# Slide 2
+
+Testing
