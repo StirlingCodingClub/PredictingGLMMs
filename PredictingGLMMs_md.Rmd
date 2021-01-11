@@ -12,6 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 set.seed(48460)
 ```
 
+_Updated on `r format(Sys.Date(),"%d %B %Y")`_
+
 # Introduction
 
 So linear models, in any form, are possibly one of the most frequently used tools in statistics used in ecology, conservation biology, evolutionary biology and ethology.
@@ -102,9 +104,15 @@ Now, it is possible to extract standard errors of the predictions from the predi
 
 ``` {r lmm_pred_se}
 new_weights <- predict(m, newdata=data.frame(wing=new_wings), se.fit=T)
+new_weights
 ```
 
-We can now use these SE's by adding and substracting 1.96 times their value and adding a couple of extra lines to the plot, which should then represent +/- upper and lower confidence intervals on our predictions:
+Note how the predict() function, when given the argument `se.fit=T`, provides estimated standard errors around the point estimates.
+
+## Visualising prediction uncertainty
+
+The prediction SE's calculated above can be visualised using two extra lines above and below the "mean" prediction (or point prediction), producing a typical "regression type" plot which takes account of some form of prediction uncertainty.
+The easiest way to do this for a simple linear model as in the current example, is simply to plot two extra lines for the point prediction plus and minus 1.95* the prediction standard error. By multiplying by 1.95, the resulting numbers should reflect the approximately 95% confidence interval on the point predictions:
 
 ``` {r lmm_plot3}
 plot(weight~wing)
@@ -114,6 +122,32 @@ lines(new_wings, new_weights$fit-1.96*new_weights$se.fit, col='red') # Lower CI 
 ```
 
 Note that because our predictions object *new_weights* now includes multiple elements, we have to refer to the fit and SE elements explicitly using the $ operator.
+
+If preferred, you can additionally "fill in" the area between the upper and lower bounds with a different shade, like grey. To do this, we can use the `polygon()` function; the code that follows below shows an example of how to do this.
+Note that to avoid "overplotting" a grey shade over the observed points, and hence not being able to see some of the observations, we first plot an empty axis space (using `type = "n"`). To make sure the polygon is plotted on the "bottom" and the lines and points on top, we add the polygon to the empty axis space first, and then add the mean line and points second.
+The syntax for `polygon()` is a little confusing but essentially to plot the kind of shape we want here, we need to give it the X and Y vectors twice; once in the regular order and once in reverse:
+
+```{r lmm_plot3a}
+point_pred <- new_weights$fit # This is the point predictions
+lower_bound <- point_pred-new_weights$se.fit*1.96
+upper_bound <- point_pred+new_weights$se.fit*1.96
+# Empty axis space (type = "n"). Note I've added a bit of extra space on the right 
+#  hand side of the figure, to make sure the polygon looks 'centered':
+plot(weight~wing, type = "n", xlim = c(100,130.5)) 
+# Add the upper/lower bound polygon. We surpress plotting of the borders by setting 
+# these NA (otherwise there would be a border plotted on the left and right hand ends 
+# as well as above and below):
+polygon(c(new_wings, rev(new_wings)), c(lower_bound, rev(upper_bound)), 
+        col = "grey", border = NA)
+# Now add the lines as per the above figure. We make the point prediction line a bit 
+# wider (lwd) and the upper and lower bound lines a different shade, so they stand out 
+# from each other.
+lines(new_wings, point_pred, lwd = 2) # This is the point predictions
+lines(new_wings, upper_bound, col = "darkgrey") # Upper CI for prediction
+lines(new_wings, lower_bound, col = "darkgrey") # Lower CI for prediction
+
+```
+
 
 ## Calculating predictions 'by hand'
 
@@ -147,9 +181,9 @@ This of course gives exactly the same result as the values from the predict() fu
 
 Note that obviously with the manual prediction above, we did not also reproduce the standard errors on the predictions as we go from predict() earlier. 
 These are relatively easily calculated analytically using the estimated covariance matrix and the values for which you want to predict (model matrix), but I am not going to go into this in detail here. If you are interested though, the code would be the following:
-```{r}
-#predict(m, newdata=data.frame(wing=120), se.fit=T)$se.fit  ### Is the same as...
-#sqrt(t(mm[1,]) %*% vcov(m) %*% mm[1,])
+```{r, eval=FALSE, echo = TRUE}
+predict(m, newdata=data.frame(wing=120), se.fit=T)$se.fit  ### Is the same as...
+sqrt(t(model_matrix[1,]) %*% vcov(m) %*% model_matrix[1,])
 ```
 
 Instead, I'll show how to use the function *sim()* in package *arm* to sample randomly from the estimated parameter distributions, and produce new predictions for each set of sampled parameters. Because this will yield a series of many different predicted lines, we can then derive the average predicted weight for each value of wing, as well as the upper and lower quantiles of this distribution. The result will give us simulated confidence intervals around a prediction.  
