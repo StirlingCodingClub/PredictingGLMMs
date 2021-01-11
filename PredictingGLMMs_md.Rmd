@@ -145,7 +145,7 @@ polygon(c(new_wings, rev(new_wings)), c(lower_bound, rev(upper_bound)),
 lines(new_wings, point_pred, lwd = 2) # This is the point predictions
 lines(new_wings, upper_bound, col = "darkgrey") # Upper CI for prediction
 lines(new_wings, lower_bound, col = "darkgrey") # Lower CI for prediction
-
+points(wing, weight)
 ```
 
 
